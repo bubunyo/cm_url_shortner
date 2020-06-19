@@ -78,23 +78,13 @@ PageTypes:
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
 )
-
-type Customer struct {
-	ID          int
-	Name        string
-	PhoneNumber string
-	Bank        string
-}
-
-var customerMap = map[int]Customer{
-	1: Customer{1, "Nick", "0787665757", "Barclays"},
-	2: Customer{2, "Bubu", "244792164", "Stanchart"},
-}
 
 const (
 	BankPage    = 0
@@ -103,17 +93,31 @@ const (
 
 type Page struct {
 	Type       int
-	CustomerId int
+	CustomerId string
 }
 
 var pageMap = map[string]Page{
-	"abc12": Page{BankPage, 1},
-	"abc13": Page{UtilityPage, 2},
+	"abc12": Page{BankPage, "1"},
+	"abc13": Page{UtilityPage, "2"},
+}
+
+func JsonResponse(w http.ResponseWriter, p interface{}) {
+	w.Header().Set("Content-Type", "application/json")
+	err := json.NewEncoder(w).Encode(p)
+	if err != nil {
+		log.Println(err)
+	}
+}
+func ErrorResponse(w http.ResponseWriter, err error, code int) {
+	http.Error(w, err.Error(), code)
 }
 
 func main() {
 	r := mux.NewRouter()
 
+	r.HandleFunc("/members", CreateMember).Methods("POST")
+	r.HandleFunc("/members/{memberId}", GetMember).Methods("GET")
+	r.HandleFunc("/members", GetMembers).Methods("GET")
 	r.HandleFunc("/{shortCode}", HandleShortCode)
 
 	http.ListenAndServe(":8080", r)
@@ -121,7 +125,7 @@ func main() {
 
 func createPageContent(p Page) string {
 
-	c := customerMap[p.CustomerId]
+	c := MemberMap[p.CustomerId]
 
 	if p.Type == BankPage {
 		return bankPage(c.Name)
