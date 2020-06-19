@@ -80,14 +80,15 @@ package main
 import (
 	"fmt"
 	"net/http"
+
 	"github.com/gorilla/mux"
 )
 
 type Customer struct {
-	ID int
-	Name string
+	ID          int
+	Name        string
 	PhoneNumber string
-	Bank string
+	Bank        string
 }
 
 var customerMap = map[int]Customer{
@@ -96,12 +97,12 @@ var customerMap = map[int]Customer{
 }
 
 const (
-	BankPage = 0
+	BankPage    = 0
 	UtilityPage = 1
 )
 
-type Page struct{
-	Type int
+type Page struct {
+	Type       int
 	CustomerId int
 }
 
@@ -110,21 +111,45 @@ var pageMap = map[string]Page{
 	"abc13": Page{UtilityPage, 2},
 }
 
-
 func main() {
 	r := mux.NewRouter()
 
 	r.HandleFunc("/{shortCode}", HandleShortCode)
-	
+
 	http.ListenAndServe(":8080", r)
 }
 
-func HandleShortCode(w http.ResponseWriter, r *http.Request){
+func createPageContent(p Page) string {
+
+	c := customerMap[p.CustomerId]
+
+	if p.Type == BankPage {
+		return bankPage(c.Name)
+	}
+
+	if p.Type == UtilityPage {
+		return utilityPage(c.Name)
+	}
+
+	return "<p>Page Not Found</p>"
+}
+
+func bankPage(name string) string {
+	a := fmt.Sprintf("<p>Hi %s</p><p>Click <a href>here</a> to go to bank</p>", name)
+	return a
+}
+
+func utilityPage(name string) string {
+	a := fmt.Sprintf("<p>Hi %s</p><p>Click <a href>here</a> to go to your Utility page</p>", name)
+	return a
+}
+
+func HandleShortCode(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	shortCode := vars["shortCode"]
-	if p, ok := pageMap[shortCode]; !ok{
+	if p, ok := pageMap[shortCode]; !ok {
 		fmt.Fprintf(w, "this page doesnt exist\n")
-	}else {
-		fmt.Fprintf(w, "fetchin page type %d, with customer id %d\n", p.Type, p.CustomerId)
+	} else {
+		fmt.Fprintf(w, createPageContent(p))
 	}
 }
