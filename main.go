@@ -118,7 +118,7 @@ func main() {
 	r.HandleFunc("/members", CreateMember).Methods("POST")
 	r.HandleFunc("/members/{memberId}", GetMember).Methods("GET")
 	r.HandleFunc("/members", GetMembers).Methods("GET")
-	r.HandleFunc("/{shortCode}", HandleShortCode)
+	r.HandleFunc("/{shortCode}", HandleShortCode).Methods("GET")
 
 	http.ListenAndServe(":8080", r)
 }

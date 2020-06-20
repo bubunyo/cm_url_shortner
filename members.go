@@ -16,7 +16,7 @@ type Member struct {
 	Bank        string `json:"bank"`
 }
 
-var MemberMap = map[string]Member{}
+var MemberDatabase = map[string]Member{}
 
 func CreateMember(w http.ResponseWriter, r *http.Request) {
 	var m Member
@@ -26,13 +26,13 @@ func CreateMember(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	m.ID = uuid.New().String()
-	MemberMap[m.ID] = m
+	MemberDatabase[m.ID] = m
 	JsonResponse(w, m)
 }
 
 func GetMembers(w http.ResponseWriter, r *http.Request) {
 	var ml []Member
-	for _, v := range MemberMap {
+	for _, v := range MemberDatabase {
 		ml = append(ml, v)
 	}
 	JsonResponse(w, ml)
@@ -41,9 +41,10 @@ func GetMembers(w http.ResponseWriter, r *http.Request) {
 func GetMember(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	mID := vars["memberId"]
-	m, ok := MemberMap[mID]
+	m, ok := MemberDatabase[mID]
 	if !ok {
 		ErrorResponse(w, fmt.Errorf("User Not Found"), http.StatusNotFound)
+		return
 	}
 	JsonResponse(w, m)
 }
